@@ -15,8 +15,16 @@ const NewTicketPage = () => {
       await createTicketRequest({ title, description });
       toast.success("Ticket created");
       navigate("/dashboard");
-    } catch {
-      toast.error("Could not create ticket");
+    } catch (error) {
+      const apiError = error?.response?.data;
+      const message =
+        apiError?.message ||
+        apiError?.error_description ||
+        apiError?.msg ||
+        apiError?.error ||
+        error?.message ||
+        "Could not create ticket";
+      toast.error(message);
     }
   };
 

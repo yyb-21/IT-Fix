@@ -17,8 +17,8 @@ import { STATUS_OPTIONS } from "../utils/status";
 import { canEditTickets } from "../utils/roleRedirect";
 
 const ITDashboardPage = () => {
-  const { role } = useAuth();
-  const { tickets, loading, updateTicket } = useTickets(true);
+  const { role, user } = useAuth();
+  const { tickets, loading, updateTicket, acceptTicket } = useTickets(true);
   const { users } = useUsers(true);
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -45,8 +45,33 @@ const ITDashboardPage = () => {
     try {
       await updateTicket(ticketId, payload);
       toast.success("Ticket updated");
-    } catch {
-      toast.error("Update failed");
+    } catch (error) {
+      const apiError = error?.response?.data;
+      const message =
+        apiError?.message ||
+        apiError?.error_description ||
+        apiError?.msg ||
+        apiError?.error ||
+        error?.message ||
+        "Update failed";
+      toast.error(message);
+    }
+  };
+
+  const handleAccept = async (ticketId) => {
+    try {
+      await acceptTicket(ticketId);
+      toast.success("Ticket accepted");
+    } catch (error) {
+      const apiError = error?.response?.data;
+      const message =
+        apiError?.message ||
+        apiError?.error_description ||
+        apiError?.msg ||
+        apiError?.error ||
+        error?.message ||
+        "Could not accept ticket";
+      toast.error(message);
     }
   };
 
@@ -152,20 +177,21 @@ const ITDashboardPage = () => {
                             </option>
                           ))}
                         </select>
-                        <select
-                          defaultValue={ticket.assigned_to || ""}
-                          onChange={(e) =>
-                            handleUpdate(ticket.id, { status: ticket.status, assigned_to: e.target.value || null })
-                          }
-                          className="!py-2 !text-[12px]"
-                        >
-                          <option value="">unassigned</option>
-                          {itMembers.map((member) => (
-                            <option key={member.id} value={member.id}>
-                              {member.email}
-                            </option>
-                          ))}
-                        </select>
+                        {ticket.assigned_to ? (
+                          <p className="self-center text-[12px] text-[var(--text-muted)]">
+                            {ticket.assigned_to === user?.id ? "Accepted by you" : "Accepted"}
+                          </p>
+                        ) : role === "it_support" ? (
+                          <button
+                            type="button"
+                            className="btn-secondary !py-2 !text-[12px]"
+                            onClick={() => handleAccept(ticket.id)}
+                          >
+                            Accept
+                          </button>
+                        ) : (
+                          <p className="self-center text-[12px] text-[var(--text-muted)]">Unassigned</p>
+                        )}
                       </div>
                     ) : (
                       <p className="text-[12px] text-[var(--text-muted)]">Read-only</p>

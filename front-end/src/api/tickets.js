@@ -14,3 +14,8 @@ export const updateTicketRequest = async (id, payload) => {
   const { data } = await api.put(`/tickets/${id}`, payload);
   return data;
 };
+
+export const acceptTicketRequest = async (id) => {
+  const { data } = await api.put(`/tickets/${id}/accept`);
+  return data;
+};

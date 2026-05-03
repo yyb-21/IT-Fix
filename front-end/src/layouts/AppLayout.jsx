@@ -2,10 +2,16 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import { useAuth } from "../context/AuthContext";
+import { useITNewTicketNotifications } from "../hooks/useITNewTicketNotifications";
 
 const AppLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const { role, user, loading } = useAuth();
+  const notifyIT =
+    !loading && !!user?.id && (role === "it_support" || role === "admin");
+  useITNewTicketNotifications(notifyIT, user?.id);
 
   const closeSidebar = () => setSidebarOpen(false);
 

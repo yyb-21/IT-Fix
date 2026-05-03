@@ -10,6 +10,8 @@ import {
   Users,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
+import { requestDesktopNotificationPermission } from "../hooks/useITNewTicketNotifications";
 
 const linksByRole = {
   user: [
@@ -45,6 +47,21 @@ const Sidebar = ({ open, onNavigate }) => {
     logout();
     navigate("/login");
   };
+
+  const onEnableDesktopAlerts = async () => {
+    const result = await requestDesktopNotificationPermission();
+    if (result === "granted") {
+      toast.success("Desktop alerts enabled for new tickets");
+    } else if (result === "denied") {
+      toast.error("Notifications blocked — allow them in your browser settings");
+    } else if (result === "unsupported") {
+      toast.error("This browser does not support desktop notifications");
+    } else {
+      toast("Notification permission not granted");
+    }
+  };
+
+  const showAlertOptIn = role === "it_support" || role === "admin";
 
   return (
     <aside className={`sidebar-shell ${open ? "sidebar-shell--open" : ""}`}>
@@ -88,6 +105,15 @@ const Sidebar = ({ open, onNavigate }) => {
             <p className="truncate font-mono text-[11px] uppercase tracking-wider text-[var(--text-muted)]">{role || "—"}</p>
           </div>
         </div>
+        {showAlertOptIn ? (
+          <button
+            type="button"
+            onClick={onEnableDesktopAlerts}
+            className="btn-secondary mb-2 w-full justify-center !py-2 text-[12px]"
+          >
+            Enable desktop alerts
+          </button>
+        ) : null}
         <button type="button" onClick={onLogout} className="btn-secondary w-full justify-center gap-2 text-[13px]">
           <LogOut size={16} strokeWidth={1.75} />
           Logout

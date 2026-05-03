@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  acceptTicketRequest,
   createTicketRequest,
   getTicketsRequest,
   updateTicketRequest,
@@ -33,9 +34,14 @@ export const useTickets = (autoload = true) => {
     await fetchTickets();
   };
 
+  const acceptTicket = async (id) => {
+    await acceptTicketRequest(id);
+    await fetchTickets();
+  };
+
   useEffect(() => {
     if (autoload) fetchTickets();
   }, [autoload, fetchTickets]);
 
-  return { tickets, loading, error, createTicket, updateTicket, refetchTickets: fetchTickets };
+  return { tickets, loading, error, createTicket, updateTicket, acceptTicket, refetchTickets: fetchTickets };
 };
