@@ -17,7 +17,15 @@ const RegisterPage = () => {
       toast.success("Registration successful. You can now login.");
       navigate("/login");
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Registration failed");
+      const apiError = error?.response?.data;
+      const message =
+        apiError?.message ||
+        apiError?.error_description ||
+        apiError?.msg ||
+        apiError?.error ||
+        error?.message ||
+        "Registration failed";
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }

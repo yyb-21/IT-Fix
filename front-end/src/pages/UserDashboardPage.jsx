@@ -28,8 +28,16 @@ const UserDashboardPage = () => {
   );
 
   const handleCreate = async (payload) => {
-    await createTicket(payload);
-    toast.success("Ticket created");
+    try {
+      await createTicket(payload);
+      toast.success("Ticket created");
+    } catch (error) {
+      const apiError = error?.response?.data;
+      const message =
+        apiError?.message || apiError?.error_description || apiError?.error || error?.message || "Could not create ticket";
+      toast.error(message);
+      throw error;
+    }
   };
 
   const displayName = user?.email?.split("@")[0] || "there";
