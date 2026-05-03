@@ -2,6 +2,9 @@ import { supabase } from "../config/supabase.js";
 
 export const createTicket = async (req, res) => {
   const { title, description } = req.body;
+  const userId = req.user.id;
+
+  console.log('createTicket called by user:', userId, 'with title:', title);
 
   const { data, error } = await supabase
     .from("tickets")
@@ -10,12 +13,16 @@ export const createTicket = async (req, res) => {
         title,
         description,
         status: "open",
-        user_id: req.user.id,
+        user_id: userId,
       },
     ]);
 
-  if (error) return res.status(400).json(error);
+  if (error) {
+    console.error('Database error in createTicket:', error);
+    return res.status(400).json(error);
+  }
 
+  console.log('Ticket created successfully:', data);
   res.json(data);
 };
 
@@ -23,19 +30,28 @@ export const getTickets = async (req, res) => {
   const userRole = req.user?.user_metadata?.role || 'user';
   const userId = req.user.id;
 
+  console.log('getTickets called by user:', userId, 'with role:', userRole);
+
   let query = supabase.from("tickets").select("*");
 
   // Filter tickets based on role
   if (userRole === 'user') {
     // Users can only see their own tickets
     query = query.eq('user_id', userId);
+    console.log('Filtering tickets for user:', userId);
+  } else {
+    console.log('Returning all tickets for role:', userRole);
   }
   // IT support and admins can see all tickets (no additional filter needed)
 
   const { data, error } = await query;
 
-  if (error) return res.status(400).json(error);
+  if (error) {
+    console.error('Database error in getTickets:', error);
+    return res.status(400).json(error);
+  }
 
+  console.log('Returning', data?.length || 0, 'tickets');
   res.json(data);
 };
 
