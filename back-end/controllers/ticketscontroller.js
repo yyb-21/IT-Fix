@@ -51,6 +51,28 @@ export const updateTicket = async (req, res) => {
     return res.status(400).json({ error: "Invalid status" });
   }
 
+  // Validate assigned_to if provided
+  if (assigned_to !== null && assigned_to !== undefined && assigned_to !== "") {
+    // Verify the assigned_to user exists and has it_support or admin role
+    try {
+      const { data: assignedUser, error: userError } = await supabase.auth.admin.getUserById(assigned_to);
+      
+      if (userError || !assignedUser) {
+        return res.status(400).json({ error: "Assigned user not found" });
+      }
+
+      const assignedUserRole = assignedUser.user_metadata?.role || 'user';
+      if (assignedUserRole !== 'it_support' && assignedUserRole !== 'admin') {
+        return res.status(400).json({ 
+          error: "Can only assign tickets to IT support or admin users" 
+        });
+      }
+    } catch (error) {
+      console.error('Error validating assigned_to user:', error);
+      return res.status(500).json({ error: "Failed to validate assigned user" });
+    }
+  }
+
   // First, get the current ticket to check permissions
   const { data: currentTicket, error: fetchError } = await supabase
     .from("tickets")
@@ -75,7 +97,7 @@ export const updateTicket = async (req, res) => {
 
   const { data, error } = await supabase
     .from("tickets")
-    .update({ status, assigned_to })
+    .update({ status, assigned_to: assigned_to || null })
     .eq("id", id);
 
   if (error) return res.status(400).json(error);
