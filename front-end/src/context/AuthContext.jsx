@@ -23,11 +23,13 @@ export const AuthProvider = ({ children }) => {
       const decoded = jwtDecode(savedToken);
       const userId = decoded?.sub;
       const email = decoded?.email;
-      const resolvedRole = await resolveRole(userId, email);
+      // Get role from JWT user_metadata, fallback to localStorage or 'user'
+      const userRole = decoded?.user_metadata?.role || localStorage.getItem("role") || "user";
       setUser({ id: userId, email });
-      setRole(resolvedRole);
-      localStorage.setItem("role", resolvedRole);
-    } catch {
+      setRole(userRole);
+      localStorage.setItem("role", userRole);
+    } catch (error) {
+      console.error('Bootstrap error:', error);
       localStorage.removeItem("access_token");
       localStorage.removeItem("role");
       setToken("");
@@ -50,20 +52,21 @@ export const AuthProvider = ({ children }) => {
     const data = await loginRequest({ email, password });
     const accessToken = data?.session?.access_token;
     const sessionUser = data?.user;
+    const userRole = data?.role;
     if (!accessToken) throw new Error("Missing access token");
+    if (!userRole) throw new Error("No role returned from login");
 
     localStorage.setItem("access_token", accessToken);
     setToken(accessToken);
-    const resolvedRole = await resolveRole(sessionUser?.id, sessionUser?.email || email);
-    setRole(resolvedRole);
+    setRole(userRole);
     setUser(sessionUser || { email, id: sessionUser?.id });
-    localStorage.setItem("role", resolvedRole);
-    return roleRedirect(resolvedRole);
+    localStorage.setItem("role", userRole);
+    return roleRedirect(userRole);
   };
 
-  const register = async ({ email, password, role: selectedRole }) => {
-    await registerRequest({ email, password });
-    localStorage.setItem("selected_role", selectedRole);
+  const register = async ({ email, username, password, role }) => {
+    await registerRequest({ email, username, password, role });
+    localStorage.setItem("selected_role", role);
   };
 
   const logout = () => {

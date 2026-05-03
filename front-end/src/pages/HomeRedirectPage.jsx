@@ -5,7 +5,7 @@ import Spinner from "../components/Spinner";
 
 const HomeRedirectPage = () => {
   const { token, role, loading } = useAuth();
-  if (loading) return <Spinner />;
+  if (loading || !role) return <Spinner />;
   if (!token) return <Navigate to="/login" replace />;
   return <Navigate to={roleRedirect(role)} replace />;
 };

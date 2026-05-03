@@ -12,3 +12,24 @@ export const protect = async (req, res, next) => {
   req.user = data.user;
   next();
 };
+
+// Role-based access control middleware
+export const requireRole = (...allowedRoles) => {
+  return (req, res, next) => {
+    const userRole = req.user?.user_metadata?.role || 'user';
+
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({
+        error: "Insufficient permissions",
+        required: allowedRoles,
+        current: userRole
+      });
+    }
+
+    next();
+  };
+};
+
+// Specific role middleware for common use cases
+export const requireITSupportOrAdmin = requireRole('it_support', 'admin');
+export const requireAdmin = requireRole('admin');
