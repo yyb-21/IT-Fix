@@ -1,4 +1,5 @@
 import { Menu } from "lucide-react";
+import NotificationDropdown from "./NotificationDropdown";
 
 const Navbar = ({ toggleSidebar }) => (
   <header className="mobile-top-bar">
@@ -9,7 +10,7 @@ const Navbar = ({ toggleSidebar }) => (
       <span className="auth-brand-dot" />
       <span className="font-semibold tracking-tight text-[var(--text-primary)]">HelpDesk</span>
     </div>
-    <span className="w-9" aria-hidden />
+    <NotificationDropdown />
   </header>
 );
 

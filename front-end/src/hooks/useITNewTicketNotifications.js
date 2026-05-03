@@ -48,9 +48,12 @@ export function useITNewTicketNotifications(enabled, userId) {
         }
         const seen = new Set(seenArr);
 
+        let newTicketsFound = false;
+
         for (const ticket of tickets) {
           if (seen.has(ticket.id)) continue;
           seen.add(ticket.id);
+          newTicketsFound = true;
 
           const summary = ticket.title || "New ticket";
           const body =
@@ -70,6 +73,10 @@ export function useITNewTicketNotifications(enabled, userId) {
               /* ignore Notification constructor errors */
             }
           }
+        }
+
+        if (newTicketsFound) {
+          window.dispatchEvent(new Event("ticketsUpdated"));
         }
 
         sessionStorage.setItem(seenKey, JSON.stringify([...seen]));

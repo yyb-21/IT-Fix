@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import {
   Archive,
@@ -7,6 +7,7 @@ import {
   Layers,
   Loader2,
   SlidersHorizontal,
+  Trash2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTickets } from "../hooks/useTickets";
@@ -18,27 +19,33 @@ import { canEditTickets } from "../utils/roleRedirect";
 
 const ITDashboardPage = () => {
   const { role, user } = useAuth();
-  const { tickets, loading, updateTicket, acceptTicket } = useTickets(true);
+  const { tickets, loading, updateTicket, acceptTicket, refetchTickets, deleteTicket } = useTickets(true);
   const { users } = useUsers(true);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [deletingId, setDeletingId] = useState(null);
 
   const userMap = useMemo(() => Object.fromEntries(users.map((u) => [u.id, u])), [users]);
   const itMembers = useMemo(() => users.filter((u) => u.role === "it_support"), [users]);
 
+  const assignedTickets = useMemo(
+    () => tickets.filter((ticket) => ticket.assigned_to),
+    [tickets]
+  );
+
   const filtered = useMemo(
-    () => tickets.filter((ticket) => (statusFilter === "all" ? true : ticket.status === statusFilter)),
-    [tickets, statusFilter]
+    () => assignedTickets.filter((ticket) => (statusFilter === "all" ? true : ticket.status === statusFilter)),
+    [assignedTickets, statusFilter]
   );
 
   const stats = useMemo(
     () => ({
-      total: tickets.length,
-      open: tickets.filter((t) => t.status === "open").length,
-      in_progress: tickets.filter((t) => t.status === "in_progress").length,
-      resolved: tickets.filter((t) => t.status === "resolved").length,
-      closed: tickets.filter((t) => t.status === "closed").length,
+      total: assignedTickets.length,
+      open: assignedTickets.filter((t) => t.status === "open").length,
+      in_progress: assignedTickets.filter((t) => t.status === "in_progress").length,
+      resolved: assignedTickets.filter((t) => t.status === "resolved").length,
+      closed: assignedTickets.filter((t) => t.status === "closed").length,
     }),
-    [tickets]
+    [assignedTickets]
   );
 
   const handleUpdate = async (ticketId, payload) => {
@@ -54,7 +61,22 @@ const ITDashboardPage = () => {
         apiError?.error ||
         error?.message ||
         "Update failed";
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this ticket?")) return;
+    setDeletingId(id);
+    try {
+      await deleteTicket(id);
+      toast.success("Ticket deleted");
+    } catch (error) {
+      const apiError = error?.response?.data;
+      const message =
+        apiError?.message || apiError?.error_description || apiError?.error || error?.message || "Could not delete ticket";
       toast.error(message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -131,9 +153,11 @@ const ITDashboardPage = () => {
       <div className="glass-card overflow-hidden p-0">
         <div className="data-grid-scroll">
           <div className="data-grid-scroll-inner">
-            <div className="data-grid-header data-grid--tickets">
+            <div className="data-grid-header data-grid--tickets-expanded" style={{ gridTemplateColumns: '80px 2fr 1fr 1fr 1fr 100px 100px 150px' }}>
               <span>ID</span>
               <span>Title</span>
+              <span>Category</span>
+              <span>Priority</span>
               <span>Reporter</span>
               <span>Status</span>
               <span>Assigned</span>
@@ -143,14 +167,25 @@ const ITDashboardPage = () => {
               {filtered.map((ticket, index) => (
                 <div
                   key={ticket.id}
-                  className="group data-grid-row data-grid--tickets ticket-feed-item"
-                  style={{ animationDelay: `${index * 45}ms` }}
+                  className="group data-grid-row ticket-feed-item"
+                  style={{ animationDelay: `${index * 45}ms`, gridTemplateColumns: '80px 2fr 1fr 1fr 1fr 100px 100px 150px', display: 'grid', alignItems: 'center', gap: '1rem', padding: '1rem' }}
                 >
                   <span className="font-mono text-[12px] text-[var(--text-muted)]">#{ticket.id}</span>
                   <div className="min-w-0">
                     <p className="truncate text-[14px] font-medium text-[var(--text-primary)]">{ticket.title}</p>
                     <p className="line-clamp-1 text-[12px] text-[var(--text-secondary)]">{ticket.description}</p>
                   </div>
+                  <span className="truncate text-[13px] text-[var(--text-secondary)]">
+                    {ticket.category || "Other"}
+                  </span>
+                  <span className={`w-fit rounded px-2 py-0.5 text-[11px] font-medium border border-[var(--border-glass)] ${
+                    ticket.priority === 'Critical' ? 'bg-red-500/10 text-red-400' :
+                    ticket.priority === 'High' ? 'bg-orange-500/10 text-orange-400' :
+                    ticket.priority === 'Low' ? 'bg-green-500/10 text-green-400' :
+                    'bg-[var(--bg-glass)] text-[var(--text-secondary)]'
+                  }`}>
+                    {ticket.priority || "Medium"}
+                  </span>
                   <span className="truncate text-[13px] text-[var(--text-secondary)]">
                     {userMap[ticket.user_id]?.email || ticket.user_id}
                   </span>
@@ -159,8 +194,16 @@ const ITDashboardPage = () => {
                     {userMap[ticket.assigned_to]?.email || "—"}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                      <SlidersHorizontal size={16} strokeWidth={1.5} className="text-[var(--text-muted)]" aria-hidden />
+                    <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100 flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(ticket.id)}
+                        disabled={deletingId === ticket.id}
+                        className="btn-ghost-icon text-[var(--text-muted)] hover:text-red-500"
+                        aria-label="Delete ticket"
+                      >
+                        <Trash2 size={16} strokeWidth={1.5} />
+                      </button>
                     </span>
                     {canEditTickets(role) ? (
                       <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row">

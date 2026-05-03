@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 
 const RegisterPage = () => {
-  const [form, setForm] = useState({ email: "", password: "", role: "user" });
+  const [form, setForm] = useState({ username: "", email: "", password: "", role: "user" });
   const [submitting, setSubmitting] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -39,6 +39,12 @@ const RegisterPage = () => {
       </div>
       <p className="auth-tagline">Create an account. You will pick up your role after the first sync.</p>
       <h1 className="mb-6 text-xl font-semibold tracking-tight">Register</h1>
+      <div className="mb-4">
+        <label className="form-label" htmlFor="reg-username">
+          Username
+        </label>
+        <input id="reg-username" type="text" required placeholder="johndoe" value={form.username} onChange={(e) => setForm((prev) => ({ ...prev, username: e.target.value }))} />
+      </div>
       <div className="mb-4">
         <label className="form-label" htmlFor="reg-email">
           Email

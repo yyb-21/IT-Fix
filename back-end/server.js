@@ -27,13 +27,27 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/users", userRoutes);
 
-const PORT = process.env.PORT;
+const PORT = Number(process.env.PORT) || 5002;
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT);
+
+server.on('listening', () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-// Keep the process alive
 server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(
+      `Port ${PORT} is already in use. Another instance of this server may be running.`
+    );
+    console.error(
+      'Stop it first (e.g. close the other terminal, or run: fuser -k ' +
+        PORT +
+        '/tcp ) or set PORT in .env to a different port.'
+    );
+    process.exit(1);
+    return;
+  }
   console.error('Server error:', error);
+  process.exit(1);
 });

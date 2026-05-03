@@ -1,17 +1,20 @@
 import { supabase } from "../config/supabase.js";
 
 export const register = async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, username, password, role } = req.body;
 
   // Validate all required fields
-  if (!email || !password || !role) {
-    return res.status(400).json({ message: "email, password, and role are required" });
+  if (!email || !username || !password || !role) {
+    return res.status(400).json({ message: "email, username, password, and role are required" });
   }
 
   // Create auth user
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: { role, username },
+    },
   });
 
   if (error) {
@@ -21,20 +24,6 @@ export const register = async (req, res) => {
 
   if (!data?.user?.id) {
     return res.status(500).json({ message: "No user ID returned from signup" });
-  }
-
-  // Store role in user metadata
-  const { data: updateData, error: updateError } = await supabase.auth.admin.updateUserById(
-    data.user.id,
-    { user_metadata: { role } }
-  );
-
-  if (updateError) {
-    console.error('User metadata update error:', updateError);
-    return res.status(500).json({ 
-      message: "Registration successful but failed to save user role",
-      error: updateError.message
-    });
   }
 
   console.log('User successfully created with role:', role);

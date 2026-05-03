@@ -1,21 +1,26 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 const TicketModal = ({ open, onClose, onSubmit }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("Other");
+  const [priority, setPriority] = useState("Medium");
 
   if (!open) return null;
 
   const submit = async (event) => {
     event.preventDefault();
-    await onSubmit({ title, description });
+    await onSubmit({ title, description, category, priority });
     setTitle("");
     setDescription("");
+    setCategory("Other");
+    setPriority("Medium");
     onClose();
   };
 
-  return (
+  return createPortal(
     <div className="modal-backdrop">
       <form onSubmit={submit} className="modal-panel glass-card">
         <button type="button" className="btn-ghost-icon absolute right-4 top-4" onClick={onClose} aria-label="Close">
@@ -47,6 +52,41 @@ const TicketModal = ({ open, onClose, onSubmit }) => {
             rows={5}
           />
         </div>
+        <div className="mb-4 grid grid-cols-2 gap-4">
+          <div>
+            <label className="form-label" htmlFor="ticket-category">
+              Category
+            </label>
+            <select
+              id="ticket-category"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full"
+            >
+              <option value="Hardware">Hardware</option>
+              <option value="Software">Software</option>
+              <option value="Network">Network</option>
+              <option value="Access/Login">Access/Login</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label className="form-label" htmlFor="ticket-priority">
+              Priority
+            </label>
+            <select
+              id="ticket-priority"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              className="w-full"
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
+        </div>
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className="btn-secondary">
             Cancel
@@ -56,7 +96,8 @@ const TicketModal = ({ open, onClose, onSubmit }) => {
           </button>
         </div>
       </form>
-    </div>
+    </div>,
+    document.body
   );
 };
 

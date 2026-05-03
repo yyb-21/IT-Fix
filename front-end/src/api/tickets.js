@@ -19,3 +19,13 @@ export const acceptTicketRequest = async (id) => {
   const { data } = await api.put(`/tickets/${id}/accept`);
   return data;
 };
+
+export const refuseTicketRequest = async (id) => {
+  const { data } = await api.put(`/tickets/${id}/refuse`);
+  return data;
+};
+
+export const deleteTicketRequest = async (id) => {
+  const { data } = await api.delete(`/tickets/${id}`);
+  return data;
+};

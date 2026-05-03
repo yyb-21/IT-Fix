@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { AlertCircle, CheckCircle2, Ticket, UserCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Ticket, UserCircle2, Trash2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTickets } from "../hooks/useTickets";
 import StatusBadge from "../components/StatusBadge";
@@ -10,8 +10,9 @@ import { formatDate } from "../utils/formatDate";
 
 const UserDashboardPage = () => {
   const { user } = useAuth();
-  const { tickets, loading, createTicket } = useTickets(true);
+  const { tickets, loading, createTicket, deleteTicket } = useTickets(true);
   const [openModal, setOpenModal] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const myTickets = useMemo(
     () => tickets.filter((ticket) => ticket.user_id === user?.id),
@@ -37,6 +38,22 @@ const UserDashboardPage = () => {
         apiError?.message || apiError?.error_description || apiError?.error || error?.message || "Could not create ticket";
       toast.error(message);
       throw error;
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this ticket?")) return;
+    setDeletingId(id);
+    try {
+      await deleteTicket(id);
+      toast.success("Ticket deleted");
+    } catch (error) {
+      const apiError = error?.response?.data;
+      const message =
+        apiError?.message || apiError?.error_description || apiError?.error || error?.message || "Could not delete ticket";
+      toast.error(message);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -85,7 +102,32 @@ const UserDashboardPage = () => {
           >
             <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
               <h3 className="text-[15px] font-medium tracking-tight text-[var(--text-primary)]">{ticket.title}</h3>
-              <StatusBadge status={ticket.status} />
+              <div className="flex items-center gap-2">
+                <StatusBadge status={ticket.status} />
+                <button
+                  type="button"
+                  onClick={() => handleDelete(ticket.id)}
+                  disabled={deletingId === ticket.id}
+                  className="btn-ghost-icon text-[var(--text-muted)] hover:text-red-500"
+                  aria-label="Delete ticket"
+                >
+                  <Trash2 size={16} strokeWidth={1.5} />
+                </button>
+                <StatusBadge status={ticket.status} />
+              </div>
+            </div>
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded bg-[var(--bg-glass)] px-2 py-0.5 text-xs font-medium text-[var(--text-secondary)] border border-[var(--border-glass)]">
+                {ticket.category || "Other"}
+              </span>
+              <span className={`rounded px-2 py-0.5 text-xs font-medium border border-[var(--border-glass)] ${
+                ticket.priority === 'Critical' ? 'bg-red-500/10 text-red-400' :
+                ticket.priority === 'High' ? 'bg-orange-500/10 text-orange-400' :
+                ticket.priority === 'Low' ? 'bg-green-500/10 text-green-400' :
+                'bg-[var(--bg-glass)] text-[var(--text-secondary)]'
+              }`}>
+                {ticket.priority || "Medium"}
+              </span>
             </div>
             <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--text-secondary)]">{ticket.description}</p>
             <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--border-glass)] pt-4">
