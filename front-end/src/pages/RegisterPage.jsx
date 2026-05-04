@@ -64,7 +64,6 @@ const RegisterPage = () => {
         <select id="reg-role" value={form.role} onChange={(e) => setForm((prev) => ({ ...prev, role: e.target.value }))}>
           <option value="user">user</option>
           <option value="it_support">it_support</option>
-          <option value="admin">admin</option>
         </select>
       </div>
       <button disabled={submitting} type="submit" className="btn-primary w-full">
