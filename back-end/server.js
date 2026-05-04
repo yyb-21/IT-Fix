@@ -17,7 +17,15 @@ process.on('uncaughtException', (error) => {
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://it-fix-eight.vercel.app",
+    "http://localhost:5173"
+  ],
+  credentials: true,
+}));
+
+
 app.use(express.json());
 // routes
 app.use("/api/auth", authRoutes);
