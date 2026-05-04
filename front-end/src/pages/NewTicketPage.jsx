@@ -8,7 +8,6 @@ const NewTicketPage = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const navigate = useNavigate();
-
   const onSubmit = async (event) => {
     event.preventDefault();
     try {

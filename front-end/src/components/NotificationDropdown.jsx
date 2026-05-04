@@ -59,7 +59,7 @@ const NotificationDropdown = () => {
   };
 
   useEffect(() => {
-    if (role === "it_support" || role === "admin") {
+    if (role === "it_support") {
       refetchTickets();
     }
   }, [role, refetchTickets]);
