@@ -27,25 +27,21 @@ const ITDashboardPage = () => {
   const userMap = useMemo(() => Object.fromEntries(users.map((u) => [u.id, u])), [users]);
   const itMembers = useMemo(() => users.filter((u) => u.role === "it_support"), [users]);
 
-  const assignedTickets = useMemo(
-    () => tickets.filter((ticket) => ticket.assigned_to),
-    [tickets]
-  );
-
+  // Removed assignedTickets; now filtering all tickets
   const filtered = useMemo(
-    () => assignedTickets.filter((ticket) => (statusFilter === "all" ? true : ticket.status === statusFilter)),
-    [assignedTickets, statusFilter]
+    () => tickets.filter((ticket) => (statusFilter === "all" ? true : ticket.status === statusFilter)),
+    [tickets, statusFilter]
   );
 
   const stats = useMemo(
     () => ({
-      total: assignedTickets.length,
-      open: assignedTickets.filter((t) => t.status === "open").length,
-      in_progress: assignedTickets.filter((t) => t.status === "in_progress").length,
-      resolved: assignedTickets.filter((t) => t.status === "resolved").length,
-      closed: assignedTickets.filter((t) => t.status === "closed").length,
+      total: filtered.length,
+      open: filtered.filter((t) => t.status === "open").length,
+      in_progress: filtered.filter((t) => t.status === "in_progress").length,
+      resolved: filtered.filter((t) => t.status === "resolved").length,
+      closed: filtered.filter((t) => t.status === "closed").length,
     }),
-    [assignedTickets]
+    [filtered]
   );
 
   const handleUpdate = async (ticketId, payload) => {
@@ -153,14 +149,13 @@ const ITDashboardPage = () => {
       <div className="glass-card overflow-hidden p-0">
         <div className="data-grid-scroll">
           <div className="data-grid-scroll-inner">
-            <div className="data-grid-header data-grid--tickets-expanded" style={{ gridTemplateColumns: '80px 2fr 1fr 1fr 1fr 100px 100px 150px' }}>
+            <div className="data-grid-header data-grid--tickets-expanded" style={{ gridTemplateColumns: '80px 2fr 1fr 1fr 1fr 100px 150px' }}>
               <span>ID</span>
               <span>Title</span>
               <span>Category</span>
               <span>Priority</span>
               <span>Reporter</span>
               <span>Status</span>
-              <span>Assigned</span>
               <span>Actions</span>
             </div>
             <div className="divide-y divide-[var(--border-glass)]">
@@ -168,7 +163,7 @@ const ITDashboardPage = () => {
                 <div
                   key={ticket.id}
                   className="group data-grid-row ticket-feed-item"
-                  style={{ animationDelay: `${index * 45}ms`, gridTemplateColumns: '80px 2fr 1fr 1fr 1fr 100px 100px 150px', display: 'grid', alignItems: 'center', gap: '1rem', padding: '1rem' }}
+                  style={{ animationDelay: `${index * 45}ms`, gridTemplateColumns: '80px 2fr 1fr 1fr 1fr 100px 150px', display: 'grid', alignItems: 'center', gap: '1rem', padding: '1rem' }}
                 >
                   <span className="font-mono text-[12px] text-[var(--text-muted)]">#{ticket.id}</span>
                   <div className="min-w-0">
@@ -190,9 +185,6 @@ const ITDashboardPage = () => {
                     {userMap[ticket.user_id]?.email || ticket.user_id}
                   </span>
                   <StatusBadge status={ticket.status} />
-                  <span className="truncate font-mono text-[12px] text-[var(--text-muted)]">
-                    {userMap[ticket.assigned_to]?.email || "—"}
-                  </span>
                   <div className="flex items-center gap-2">
                     <span className="opacity-0 transition-opacity duration-200 group-hover:opacity-100 flex items-center">
                       <button
@@ -210,7 +202,7 @@ const ITDashboardPage = () => {
                         <select
                           defaultValue={ticket.status}
                           onChange={(e) =>
-                            handleUpdate(ticket.id, { status: e.target.value, assigned_to: ticket.assigned_to || null })
+                            handleUpdate(ticket.id, { status: e.target.value })
                           }
                           className="!py-2 !text-[12px]"
                         >
