@@ -11,11 +11,11 @@ const workload = (count) => {
 };
 
 const ITTeamPage = () => {
-  const { users, loading: usersLoading } = useUsers(true);
+  const { users, loading: usersLoading } = useUsers(true, true);
   const { tickets, loading: ticketsLoading } = useTickets(true);
   const loading = usersLoading || ticketsLoading;
 
-  const members = useMemo(() => users.filter((u) => u.role === "it_support"), [users]);
+  const members = useMemo(() => users.filter((u) => ["it_support", "admin"].includes(u.role)), [users]);
 
   if (loading) return <Spinner />;
 

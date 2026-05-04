@@ -26,3 +26,28 @@ export const getUsers = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const getITTeam = async (req, res) => {
+  try {
+    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+
+    if (authError) {
+      console.error('Error fetching auth users:', authError);
+      return res.status(400).json(authError);
+    }
+
+    const itTeam = authUsers.users
+      .filter(user => ['it_support', 'admin'].includes(user.user_metadata?.role))
+      .map(user => ({
+        id: user.id,
+        email: user.email,
+        role: user.user_metadata?.role,
+        ...user.user_metadata
+      }));
+
+    res.json(itTeam);
+  } catch (error) {
+    console.error('Error in getITTeam:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
