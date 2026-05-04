@@ -16,7 +16,6 @@ import { requestDesktopNotificationPermission } from "../hooks/useITNewTicketNot
 const linksByRole = {
   user: [
     { to: "/dashboard", label: "Dashboard", Icon: LayoutDashboard },
-    { to: "/tickets/new", label: "New Ticket", Icon: PlusCircle },
     { to: "/profile", label: "Profile", Icon: User },
   ],
   it_support: [
