@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 
 const RegisterPage = () => {
   const [form, setForm] = useState({ username: "", email: "", password: "", role: "user" });
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -55,7 +57,24 @@ const RegisterPage = () => {
         <label className="form-label" htmlFor="reg-password">
           Password
         </label>
-        <input id="reg-password" type="password" required placeholder="••••••••" value={form.password} onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))} />
+        <div className="relative">
+          <input
+            id="reg-password"
+            type={showPassword ? "text" : "password"}
+            required
+            placeholder="••••••••"
+            value={form.password}
+            onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
       </div>
       <div className="mb-6">
         <label className="form-label" htmlFor="reg-role">
@@ -80,3 +99,4 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
+

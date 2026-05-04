@@ -1,12 +1,9 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 
 import authRoutes from "./routes/authroutes.js";
 import ticketRoutes from "./routes/ticketsroutes.js";
 import userRoutes from "./routes/usersroutes.js";
-
-dotenv.config();
 
 // Error handlers for unhandled rejections
 process.on('unhandledRejection', (reason, promise) => {
