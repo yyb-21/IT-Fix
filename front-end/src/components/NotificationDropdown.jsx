@@ -59,7 +59,7 @@ const NotificationDropdown = () => {
   };
 
   useEffect(() => {
-    if (role === "it_support") {
+    if (role === "it_support" ) {
       refetchTickets();
     }
   }, [role, refetchTickets]);
@@ -75,8 +75,8 @@ const NotificationDropdown = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Only show for IT support and admin
-  if (role !== "it_support" && role !== "admin") {
+  // Only show for IT support
+  if (role !== "it_support") {
     return null;
   }
 
@@ -97,7 +97,7 @@ const NotificationDropdown = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-lg border border-[var(--border-glass)] bg-[var(--bg-glass)] p-0 shadow-lg">
+        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-lg border border-[var(--border-glass)] bg-[rgba(var(--color-base),0.95)] p-0 shadow-lg backdrop-blur-md">
           <div className="border-b border-[var(--border-glass)] p-4">
             <h3 className="font-medium text-[var(--text-primary)]">Pending Tickets</h3>
             <p className="text-sm text-[var(--text-secondary)]">
@@ -112,7 +112,7 @@ const NotificationDropdown = () => {
               </div>
             ) : (
               pendingTickets.map((ticket) => (
-                <div key={ticket.id} className="border-b border-[var(--border-glass)] p-4 last:border-b-0">
+                <div key={ticket.id} className="border-b border-[var(--border-glass)] p-4 last:border-b-0 bg-[rgba(var(--color-base),0.5)] hover:bg-[rgba(var(--color-base),0.7)] transition-colors">
                   <div className="mb-2 flex items-start justify-between">
                     <h4 className="text-sm font-medium text-[var(--text-primary)] truncate">
                       {ticket.title}
